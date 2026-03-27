@@ -5,7 +5,7 @@ exports.handler = async (event) => {
 
     const CLIENT_ID = "1486331018947330118";
     const CLIENT_SECRET = process.env.CLIENT_SECRET;
-    const REDIRECT_URI = "https://あなたのサイト.netlify.app/.netlify/functions/callback";
+    const REDIRECT_URI = "https://certification-bot.netlify.app/.netlify/functions/callback";
 
     // 認証に飛ばす
     if (!code) {
