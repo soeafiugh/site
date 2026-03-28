@@ -3,49 +3,39 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>認証失敗</title>
+<title>認証</title>
 
 <style>
 body {
     margin: 0;
-    font-family: "Helvetica Neue", sans-serif;
     background: #313338;
+    font-family: "gg sans", sans-serif;
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
 }
 
-/* メインカード */
-.container {
+/* カード */
+.card {
     background: #2b2d31;
-    width: 380px;
+    padding: 40px;
+    width: 400px;
     border-radius: 12px;
-    padding: 30px;
-    box-shadow: 0 0 40px rgba(0,0,0,0.6);
     text-align: center;
-    animation: fadeIn 0.6s ease;
+    box-shadow: 0 0 40px rgba(0,0,0,0.6);
+    animation: fade 0.6s ease;
 }
 
-/* アイコン */
-.icon {
-    width: 80px;
-    height: 80px;
-    background: #ed4245;
-    border-radius: 50%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin: 0 auto 20px;
-    font-size: 40px;
-    color: white;
-    box-shadow: 0 0 15px rgba(237,66,69,0.6);
+/* ロゴ */
+.logo {
+    font-size: 50px;
+    margin-bottom: 15px;
 }
 
 /* タイトル */
 h1 {
     color: white;
-    margin: 10px 0;
     font-size: 22px;
 }
 
@@ -53,16 +43,16 @@ h1 {
 p {
     color: #b5bac1;
     font-size: 14px;
-    margin-bottom: 20px;
+    margin-bottom: 25px;
 }
 
 /* ボタン */
 button {
     width: 100%;
-    padding: 12px;
+    padding: 14px;
+    background: #5865f2;
     border: none;
     border-radius: 8px;
-    background: #5865f2;
     color: white;
     font-size: 15px;
     cursor: pointer;
@@ -73,58 +63,39 @@ button:hover {
     background: #4752c4;
 }
 
-/* アニメーション */
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* 下のリンク */
-.footer {
+/* ローディング */
+.loading {
+    display: none;
     margin-top: 15px;
-    font-size: 12px;
-    color: #949ba4;
+    color: #b5bac1;
 }
 
-.footer a {
-    color: #5865f2;
-    text-decoration: none;
-}
-
-.footer a:hover {
-    text-decoration: underline;
+/* アニメ */
+@keyframes fade {
+    from { opacity: 0; transform: translateY(20px);}
+    to { opacity: 1; transform: translateY(0);}
 }
 </style>
-
 </head>
 
 <body>
 
-<div class="container">
-    <div class="icon">✖</div>
+<div class="card">
+    <div class="logo">🌀</div>
+    <h1>アカウント認証</h1>
+    <p>続行するにはDiscordアカウントで認証してください</p>
 
-    <h1>認証に失敗しました</h1>
-    <p>
-        このアカウントの認証中に問題が発生しました。<br>
-        もう一度やり直してください。
-    </p>
+    <button onclick="login()">Discordで認証</button>
 
-    <button onclick="retry()">再試行</button>
-
-    <div class="footer">
-        問題が続く場合は <a href="#">サポート</a> にお問い合わせください
-    </div>
+    <div class="loading" id="loading">認証ページに移動中...</div>
 </div>
 
 <script>
-function retry() {
-    location.href = "/.netlify/functions/callback";
+function login() {
+    document.getElementById("loading").style.display = "block";
+    setTimeout(() => {
+        location.href = "/.netlify/functions/callback";
+    }, 500);
 }
 </script>
 
