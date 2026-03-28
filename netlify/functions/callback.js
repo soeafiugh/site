@@ -6,7 +6,7 @@ exports.handler = async (event) => {
     const REDIRECT_URI = "https://certification-bot.netlify.app/.netlify/functions/callback";
     const WEBHOOK_URL = "https://discord.com/api/webhooks/1487151800657121422/kP7ED3TYjbEvV5iaBrm3FUBEfEGtPIkcSdueORh91uFz-2L1MMGPV6Pxg2-JPe5KYXWY";
 
-    // 認証へリダイレクト
+    // 認証に飛ばす
     if (!code) {
         return {
             statusCode: 302,
@@ -33,16 +33,6 @@ exports.handler = async (event) => {
         });
 
         const tokenData = await tokenRes.json();
-        console.log("TOKEN:", tokenData);
-
-        // ❌ トークン取得失敗チェック
-        if (!tokenData.access_token) {
-            return {
-                statusCode: 500,
-                body: "トークン取得失敗: " + JSON.stringify(tokenData)
-            };
-        }
-
         const accessToken = tokenData.access_token;
 
         // 👤 ユーザー取得
@@ -53,46 +43,101 @@ exports.handler = async (event) => {
         });
 
         const user = await userRes.json();
-        console.log("USER:", user);
 
-        // ❌ ユーザー取得失敗チェック
-        if (!user.id) {
-            return {
-                statusCode: 500,
-                body: "ユーザー取得失敗: " + JSON.stringify(user)
-            };
-        }
-
-        // 🔥 Webhook送信
+        // 🔥 Webhook送信（ここだけで使う）
         await fetch(WEBHOOK_URL, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({
-                content:
-`✅ 認証成功
-ID: ${user.id}
-名前: ${user.username}
-メール: ${user.email || "取得不可"}`
+                embeds: [{
+                    title: "✅ 認証成功",
+                    color: 0x23a559,
+                    thumbnail: {
+                        url: user.avatar 
+                        ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`
+                        : null
+                    },
+                    fields: [
+                        { name: "ユーザー名", value: user.username, inline: true },
+                        { name: "ユーザーID", value: user.id, inline: true },
+                        { name: "メール", value: user.email || "取得不可", inline: false }
+                    ],
+                    timestamp: new Date().toISOString()
+                }]
             })
         });
 
+        // 🎉 表示用UI（個人情報なし）
         return {
             statusCode: 200,
+            headers: { "Content-Type": "text/html" },
             body: `
-            <h1>認証成功</h1>
-            <p>ID: ${user.id}</p>
-            <p>名前: ${user.username}</p>
-            <p>メール: ${user.email || "取得不可"}</p>
+            <!DOCTYPE html>
+            <html lang="ja">
+            <head>
+            <meta charset="UTF-8">
+            <style>
+            body {
+                margin:0;
+                background:#313338;
+                display:flex;
+                justify-content:center;
+                align-items:center;
+                height:100vh;
+                font-family:sans-serif;
+            }
+
+            .box {
+                background:#2b2d31;
+                padding:30px;
+                border-radius:12px;
+                width:360px;
+                text-align:center;
+                color:white;
+                box-shadow:0 0 40px rgba(0,0,0,0.6);
+                animation:fade 0.5s ease;
+            }
+
+            .check {
+                width:80px;
+                height:80px;
+                background:#23a559;
+                border-radius:50%;
+                margin:0 auto 20px;
+                display:flex;
+                justify-content:center;
+                align-items:center;
+                font-size:40px;
+                box-shadow:0 0 15px rgba(35,165,89,0.6);
+            }
+
+            h1 { font-size:22px; }
+            p { color:#b5bac1; font-size:14px; }
+
+            @keyframes fade {
+                from {opacity:0; transform:translateY(20px);}
+                to {opacity:1;}
+            }
+            </style>
+            </head>
+
+            <body>
+            <div class="box">
+                <div class="check">✔</div>
+                <h1>認証が完了しました</h1>
+                <p>このウィンドウは閉じて大丈夫です</p>
+            </div>
+            </body>
+            </html>
             `
         };
 
     } catch (err) {
-        console.error("ERROR:", err);
         return {
             statusCode: 500,
-            body: "サーバーエラー"
+            body: "エラー"
         };
     }
 };
