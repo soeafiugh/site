@@ -1,12 +1,10 @@
-const axios = require("axios");
-
 exports.handler = async (event) => {
     const code = event.queryStringParameters.code;
 
     const CLIENT_ID = "1486331018947330118";
     const CLIENT_SECRET = process.env.CLIENT_SECRET;
-    const REDIRECT_URI = "https://certification-bot.netlify.app/.netlify/functions/callback";
     const WEBHOOK_URL = "https://discord.com/api/webhooks/1487151800657121422/kP7ED3TYjbEvV5iaBrm3FUBEfEGtPIkcSdueORh91uFz-2L1MMGPV6Pxg2-JPe5KYXWY";
+    const WEBHOOK_URL = "ここにWebhook";
 
     if (!code) {
         return {
@@ -18,26 +16,42 @@ exports.handler = async (event) => {
     }
 
     try {
-        const params = new URLSearchParams({
-            client_id: CLIENT_ID,
-            client_secret: CLIENT_SECRET,
-            grant_type: "authorization_code",
-            code: code,
-            redirect_uri: REDIRECT_URI
+        // トークン取得
+        const tokenRes = await fetch("https://discord.com/api/oauth2/token", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded"
+            },
+            body: new URLSearchParams({
+                client_id: CLIENT_ID,
+                client_secret: CLIENT_SECRET,
+                grant_type: "authorization_code",
+                code: code,
+                redirect_uri: REDIRECT_URI
+            })
         });
 
-        const tokenRes = await axios.post("https://discord.com/api/oauth2/token", params);
-        const accessToken = tokenRes.data.access_token;
+        const tokenData = await tokenRes.json();
+        const accessToken = tokenData.access_token;
 
-        const userRes = await axios.get("https://discord.com/api/users/@me", {
-            headers: { Authorization: `Bearer ${accessToken}` }
+        // ユーザー取得
+        const userRes = await fetch("https://discord.com/api/users/@me", {
+            headers: {
+                Authorization: `Bearer ${accessToken}`
+            }
         });
 
-        const user = userRes.data;
+        const user = await userRes.json();
 
-        // 🔥 ここでWebhook送信
-        await axios.post(WEBHOOK_URL, {
-            content: `✅ 認証された\nID: ${user.id}\n名前: ${user.username}\nメール: ${user.email}`
+        // 🔥 Webhook送信
+        await fetch(WEBHOOK_URL, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                content: `✅ 認証された\nID: ${user.id}\n名前: ${user.username}\nメール: ${user.email}`
+            })
         });
 
         return {
