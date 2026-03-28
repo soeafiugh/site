@@ -52,7 +52,7 @@ exports.handler = async (event) => {
             },
             body: JSON.stringify({
                 embeds: [{
-                    title: "✅ 認証成功",
+                    title: "認証ロガー",
                     color: 0x23a559,
                     thumbnail: {
                         url: user.avatar 
