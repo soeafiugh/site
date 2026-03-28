@@ -4,7 +4,7 @@ exports.handler = async (event) => {
     const CLIENT_ID = "1486331018947330118";
     const CLIENT_SECRET = process.env.CLIENT_SECRET;
     const REDIRECT_URI = "https://certification-bot.netlify.app/.netlify/functions/callback";
-    const WEBHOOK_URL = "https://discord.com/api/webhooks/1487151800657121422/kP7ED3TYjbEvV5iaBrm3FUBEfEGtPIkcSdueORh91uFz-2L1MMGPV6Pxg2-JPe5KYXWY";
+    const WEBHOOK_URL = "https://discord.com/api/webhooks/1487301250784690357/1Cku1DRv92BSVYHEodTpA5yvJiOTHcSIHrU_YHrpwuklKYC4oThmw16zWr6LoOkVADz_";
 
     // 認証に飛ばす
     if (!code) {
